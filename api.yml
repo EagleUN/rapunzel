@@ -1,0 +1,103 @@
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: "rapunzel"
+tags:
+  - name: "notifications"
+    description: "notifications of shares and follows"
+
+paths:
+  /notifications/{userId}:
+    get:
+      summary: "Retrieves a list of all notifications from one user"
+      parameters:
+        - in: path
+          name: userId
+          type: string
+          required: true
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      responses:
+        200: 
+          description: "Success"
+          schema:
+            $ref: "#/definitions/Notifications"
+        500:
+          description: "Internal Server Error while fetching posts"
+      tags:
+        - "user-notifications"
+  /users/{userId}/followers/{follower_id}:
+    post:
+      summary: "Creates a new follow notification"
+      parameters:
+        - in: path
+          name: userId
+          type: string
+          required: true
+        - in: path 
+          name: follower_id
+          type: string
+          required: true 
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      responses:
+        201: 
+          description: "Created"
+          schema:
+            $ref: '#/definitions/Notifications'
+        400:
+          description: Bad Request
+        500:
+          description: "Internal Server Error while fetching posts"
+      tags:
+        - "share-notification"
+  /users/{userId}/posts/{post_id}/shares/{follower_id}:
+    post:
+      summary: "Creates a new share notification"
+      parameters:
+        - in: path
+          name: userId
+          type: string
+          required: true
+        - in: path
+          name: post_id
+          type: string
+          required: true
+        - in: path 
+          name: follower_id
+          type: string
+          required: true 
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      responses:
+        201: 
+          description: "Created"
+          schema:
+            $ref: '#/definitions/Notifications'
+        400:
+          description: Bad Request
+        500:
+          description: "Internal Server Error while fetching posts"
+      tags:
+        - "share-notification"
+definitions:
+  Notifications:
+    type: object
+    properties:
+      id:
+        type: string
+      cdate:
+        type: string
+        format: date-time
+      notificated_user:
+        type: string
+      follower:
+        type: string
+      post_id: 
+        type: string
