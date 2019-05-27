@@ -12,7 +12,7 @@ db= client.notifications
 def todo():
 	_items = db.notifications.find()
 	items = [item for item in _items]
-	return render_template('todo.html', items=items)
+	return dumps(items)
 
 @app.route('/users/<user_id>/followers/<follower_id>', methods=['POST'])
 def new_follow(user_id,follower_id):
@@ -22,7 +22,7 @@ def new_follow(user_id,follower_id):
 		'date' : datetime.datetime.now(),
 		'type' : "follow"}
 	db.notifications.insert_one(item_doc)
-	return redirect(url_for('todo'))
+	return dumps(item_doc)
 
 @app.route('/users/<user_id>/posts/<post_id>/shares/<follower_id>', methods=['POST'])
 def new_share(user_id,post_id,follower_id):
@@ -33,7 +33,7 @@ def new_share(user_id,post_id,follower_id):
         'date' : datetime.datetime.now(),
 		'type' : "share"}
     db.notifications.insert_one(item_doc)
-    return redirect(url_for('todo'))
+    return dumps(item_doc)
 
 @app.route('/notifications/<user_id>')
 def get_notifications(user_id):
