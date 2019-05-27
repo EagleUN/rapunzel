@@ -5,10 +5,10 @@ from flask import Flask, redirect, url_for, request, render_template,jsonify
 from pymongo import MongoClient
 from bson.json_util import dumps
 app= Flask(__name__)
-client= MongoClient(os.environ['DB_PORT_27017_TCP_ADDR'])
+client= MongoClient(os.environ['RAPUNZEL_DB_PORT_27017_TCP_ADDR'])
 db= client.notifications 
 
-@app.route('/')
+@app.route('/notifications')
 def todo():
 	_items = db.notifications.find()
 	items = [item for item in _items]
@@ -42,4 +42,4 @@ def get_notifications(user_id):
     return dumps(items)
 
 if __name__ == "__main__":
-	app.run(host='0.0.0.0', debug=True)
+	app.run(host='0.0.0.0', port= '5050' , debug=True)

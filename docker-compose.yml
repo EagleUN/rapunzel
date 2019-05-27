@@ -1,12 +1,12 @@
-web:
+rapunzel:
   build: .
   command: python -u app.py
   ports:
-    - "5000:5000"
+    - "5050:5050"
   volumes:
     - .:/todo
   links:
-    - db
-db:
+    - rapunzel_db
+rapunzel_db:
   image: mongo:3.0.2
 
