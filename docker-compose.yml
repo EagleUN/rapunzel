@@ -11,4 +11,5 @@ services:
         - rapunzel_db
     rapunzel_db:
       image: mongo:3.0.2
-
+      ports: 
+        - "27020:27020"

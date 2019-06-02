@@ -6,7 +6,7 @@ from flask import Flask, redirect, url_for, request, render_template,jsonify
 from pymongo import MongoClient
 from bson.json_util import dumps
 app= Flask(__name__)
-client= MongoClient(os.environ['RAPUNZEL_DB_PORT_27017_TCP_ADDR'])
+client= MongoClient(host=['rapunzel_db:27020'], connect = True)
 db= client.notifications 
 
 def myconverter(o):
