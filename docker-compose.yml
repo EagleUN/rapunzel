@@ -1,12 +1,14 @@
-rapunzel:
-  build: .
-  command: python -u app.py
-  ports:
-    - "5050:5050"
-  volumes:
-    - .:/todo
-  links:
-    - rapunzel_db
-rapunzel_db:
-  image: mongo:3.0.2
+version: "2.1"
+services:
+    rapunzel:
+      build: .
+      command: python -u app.py
+      ports:
+        - "5050:5050"
+      volumes:
+        - .:/todo
+      links:
+        - rapunzel_db
+    rapunzel_db:
+      image: mongo:3.0.2
 
