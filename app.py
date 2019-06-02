@@ -1,6 +1,7 @@
 import os 
 import datetime 
 import json
+import logging
 from flask import Flask, redirect, url_for, request, render_template,jsonify 
 from pymongo import MongoClient
 from bson.json_util import dumps
@@ -8,8 +9,12 @@ app= Flask(__name__)
 client= MongoClient(os.environ['RAPUNZEL_DB_PORT_27017_TCP_ADDR'])
 db= client.notifications 
 
+def myconverter(o):
+    if isinstance(o, datetime.datetime):
+        return o.__str__()
+
 @app.route('/notifications')
-def todo():
+def allNotif():
 	_items = db.notifications.find()
 	items = [item for item in _items]
 	return dumps(items)
@@ -19,18 +24,18 @@ def new_follow(user_id,follower_id):
 	item_doc = {
 		'notificated_user': user_id,
 		'follower': follower_id,
-		'date' : datetime.datetime.now(),
+		'date' : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"),
 		'type' : "follow"}
 	db.notifications.insert_one(item_doc)
 	return dumps(item_doc)
 
-@app.route('/users/<user_id>/posts/<post_id>/shares/<follower_id>', methods=['POST'])
-def new_share(user_id,post_id,follower_id):
+@app.route('/posts/<post_id>/shares/<follower_id>', methods=['POST'])
+def new_share(post_id,follower_id):
     item_doc = {
-        'notificated_user': user_id,
+        'notificated_user': "followed_id",
 		'post_id' : post_id,
         'follower': follower_id,
-        'date' : datetime.datetime.now(),
+        'date' : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"),
 		'type' : "share"}
     db.notifications.insert_one(item_doc)
     return dumps(item_doc)
