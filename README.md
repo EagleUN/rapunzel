@@ -8,3 +8,5 @@ notifications
 
 
 1daba304-fa24-402c-bee6-8d4860374aed
+
+app.logger.info(user)
