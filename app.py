@@ -16,6 +16,16 @@ def myconverter(o):
     if isinstance(o, datetime.datetime):
         return o.__str__()
 
+@app.route('/test')
+def testquery():
+	id = "77bd2e0f-50fe-4c58-9800-1db11035ef64"
+	id = "\""+id+"\""
+	userQuery = {"query": "query{ userById(id:{id:"+id+"}){name} }"}
+	rest = requests.post('http://35.232.95.82:5000/graphql',json= userQuery)
+	serverResponse = rest.text
+	user = serverResponse[29:-4]
+	return user
+	
 @app.route('/notifications')
 def allNotif():
 	_items = db.notifications.find()
@@ -24,9 +34,14 @@ def allNotif():
 
 @app.route('/users/<user_id>/followers/<follower_id>', methods=['POST'])
 def new_follow(user_id,follower_id):
+	id = "\""+follower_id+"\""
+	userQuery = {"query": "query{ userById(id:{id:"+id+"}){name} }"}
+	rest = requests.post('http://35.232.95.82:5000/graphql',json= userQuery)
+	serverResponse = rest.text
+	user = serverResponse[29:-4]
 	item_doc = {
 		'notificated_user': user_id,
-		'follower': follower_id,
+		'follower': user,
 		'date' : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"),
 		'type' : "follow"}
 	db.notifications.insert_one(item_doc)
@@ -34,10 +49,21 @@ def new_follow(user_id,follower_id):
 
 @app.route('/posts/<post_id>/shares/<follower_id>', methods=['POST'])
 def new_share(post_id,follower_id):
+	id = "\""+post_id+"\""
+	userQuery = {"query": "query{ postById(id:"+id+"){ idCreator } }"}
+	rest = requests.post('http://35.232.95.82:5000/graphql',json= userQuery)
+	serverResponse = rest.text
+	user_id = serverResponse[34:-4]
+	userreq = "\""+follower_id+"\""
+	userQuery1 = {"query": "query{ userById(id:{id:"+userreq+"}){name} }"}
+	rest1 = requests.post('http://35.232.95.82:5000/graphql',json= userQuery1)
+	serverResponse1 = rest1.text
+	user = serverResponse1[29:-4]
+	app.logger.info(user)
 	item_doc = {
-		'notificated_user': "1daba304-fa24-402c-bee6-8d4860374aed",
+		'notificated_user': user_id,
 		'post_id' : post_id,
-		'follower': follower_id,
+		'follower': user,
 		'date' : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"),
 		'type' : "share"}
 	db.notifications.insert_one(item_doc)
