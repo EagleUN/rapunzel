@@ -10,21 +10,21 @@ from graphqlclient import GraphQLClient
 app= Flask(__name__)
 client= MongoClient(host=['rapunzel_db:27017'], connect = True)
 db= client.notifications 
-QLclient = GraphQLClient('http://35.232.95.82:5000/graphql')
 
-def myconverter(o):
-    if isinstance(o, datetime.datetime):
-        return o.__str__()
+def makeQuery(id, query,params):
+	userQuery = {"query": "query{"+query+"(id:"+id+")" + params +" }"}
+	rest = (requests.post('http://35.232.95.82:5000/graphql',json= userQuery)).text
+	serverResponse = json.loads(rest)
+	user = serverResponse["data"][query]
+	return user
 
 @app.route('/test')
 def testquery():
-	id = "77bd2e0f-50fe-4c58-9800-1db11035ef64"
-	id = "\""+id+"\""
-	userQuery = {"query": "query{ userById(id:{id:"+id+"}){name} }"}
-	rest = requests.post('http://35.232.95.82:5000/graphql',json= userQuery)
-	serverResponse = rest.text
-	user = serverResponse[29:-4]
-	return user
+	id = "\""+ "b8aa227c-eaaf-479c-b89a-c33d4c536790"+"\""
+	query = "postById"
+	params = "{id createdAt idCreator content}"
+	user = makeQuery(id, query, params)
+	return dumps(user)
 	
 @app.route('/notifications')
 def allNotif():
@@ -34,14 +34,12 @@ def allNotif():
 
 @app.route('/users/<user_id>/followers/<follower_id>', methods=['POST'])
 def new_follow(user_id,follower_id):
-	id = "\""+follower_id+"\""
-	userQuery = {"query": "query{ userById(id:{id:"+id+"}){name} }"}
-	rest = requests.post('http://35.232.95.82:5000/graphql',json= userQuery)
-	serverResponse = rest.text
-	user = serverResponse[29:-4]
+	id = "{id:\"" + follower_id + "\""
+	follower = makeQuery(follower_id, "userById","{id name last_name email}")
 	item_doc = {
 		'notificated_user': user_id,
-		'follower': user,
+		'follower_id' : follower[id],
+		'follower_name': follower["name"] + " " + follower["last_name"],
 		'date' : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"),
 		'type' : "follow"}
 	db.notifications.insert_one(item_doc)
