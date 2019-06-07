@@ -15,15 +15,17 @@ def makeQuery(id, query,params):
 	userQuery = {"query": "query{"+query+"(id:"+id+")" + params +" }"}
 	rest = (requests.post('http://35.232.95.82:5000/graphql',json= userQuery)).text
 	serverResponse = json.loads(rest)
+	app.logger.info(rest)
 	user = serverResponse["data"][query]
 	return user
 
 @app.route('/test')
 def testquery():
-	id = "\""+ "b8aa227c-eaaf-479c-b89a-c33d4c536790"+"\""
-	query = "postById"
-	params = "{id createdAt idCreator content}"
-	user = makeQuery(id, query, params)
+	post_id = "f7f92678-e978-4e80-9b43-59e0472aa612"
+	post = makeQuery("\""+post_id+"\"","postById","{id createdAt idCreator content}")
+	notificated_id = post["idCreator"]
+	id = "{id:\""+notificated_id+ "\"}"
+	user = makeQuery(id,"userById","{id name last_name email}")
 	return dumps(user)
 	
 @app.route('/notifications')
@@ -34,11 +36,11 @@ def allNotif():
 
 @app.route('/users/<user_id>/followers/<follower_id>', methods=['POST'])
 def new_follow(user_id,follower_id):
-	id = "{id:\"" + follower_id + "\""
-	follower = makeQuery(follower_id, "userById","{id name last_name email}")
+	id = "{id:\""+ follower_id + "\"}"
+	follower = makeQuery("{id:\""+follower_id+ "\"}", "userById","{id name last_name email}")
 	item_doc = {
 		'notificated_user': user_id,
-		'follower_id' : follower[id],
+		'follower_id' : follower["id"],
 		'follower_name': follower["name"] + " " + follower["last_name"],
 		'date' : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"),
 		'type' : "follow"}
@@ -47,21 +49,15 @@ def new_follow(user_id,follower_id):
 
 @app.route('/posts/<post_id>/shares/<follower_id>', methods=['POST'])
 def new_share(post_id,follower_id):
-	id = "\""+post_id+"\""
-	userQuery = {"query": "query{ postById(id:"+id+"){ idCreator } }"}
-	rest = requests.post('http://35.232.95.82:5000/graphql',json= userQuery)
-	serverResponse = rest.text
-	user_id = serverResponse[34:-4]
-	userreq = "\""+follower_id+"\""
-	userQuery1 = {"query": "query{ userById(id:{id:"+userreq+"}){name} }"}
-	rest1 = requests.post('http://35.232.95.82:5000/graphql',json= userQuery1)
-	serverResponse1 = rest1.text
-	user = serverResponse1[29:-4]
-	app.logger.info(user)
+	post = makeQuery("\""+post_id+"\"","postById","{id createdAt idCreator content}")
+	notificated_id = post["idCreator"]
+	id = "{id:\""+notificated_id+ "\"}"
+	notificated_user = makeQuery(id,"userById","{id name last_name email}")
+	#app.logger.info(user)
 	item_doc = {
-		'notificated_user': user_id,
-		'post_id' : post_id,
-		'follower': user,
+		'notificated_user': notificated_user["id"],
+		'post_id' : post["content"],
+		'follower': follower_id,
 		'date' : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"),
 		'type' : "share"}
 	db.notifications.insert_one(item_doc)
