@@ -16,8 +16,8 @@ def makeQuery(id, query,params):
 	rest = (requests.post('http://35.232.95.82:5000/graphql',json= userQuery)).text
 	serverResponse = json.loads(rest)
 	app.logger.info(rest)
-	user = serverResponse["data"][query]
-	return user
+	data = serverResponse["data"][query]
+	return data
 
 @app.route('/test')
 def testquery():
@@ -40,8 +40,7 @@ def new_follow(user_id,follower_id):
 	follower = makeQuery("{id:\""+follower_id+ "\"}", "userById","{id name last_name email}")
 	item_doc = {
 		'notificated_user': user_id,
-		'follower_id' : follower["id"],
-		'follower_name': follower["name"] + " " + follower["last_name"],
+		'follower' : follower["name"] + " " + follower["last_name"],
 		'date' : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"),
 		'type' : "follow"}
 	db.notifications.insert_one(item_doc)
@@ -56,7 +55,7 @@ def new_share(post_id,follower_id):
 	#app.logger.info(user)
 	item_doc = {
 		'notificated_user': notificated_user["id"],
-		'post_id' : post["content"],
+		'post_id' : post["id"],
 		'follower': follower_id,
 		'date' : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"),
 		'type' : "share"}
