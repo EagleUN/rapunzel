@@ -55,14 +55,10 @@ paths:
           description: "Internal Server Error while fetching posts"
       tags:
         - "share-notification"
-  /users/{userId}/posts/{post_id}/shares/{follower_id}:
+  /posts/{post_id}/shares/{follower_id}:
     post:
       summary: "Creates a new share notification"
       parameters:
-        - in: path
-          name: userId
-          type: string
-          required: true
         - in: path
           name: post_id
           type: string
