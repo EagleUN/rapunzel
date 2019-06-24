@@ -6,7 +6,7 @@ import requests
 from flask import Flask, redirect, url_for, request, render_template,jsonify 
 from pymongo import MongoClient
 from bson.json_util import dumps
-from graphqlclient import GraphQLClient
+
 app= Flask(__name__)
 client= MongoClient(host=['rapunzel_db:27017'], connect = True)
 db= client.notifications 
