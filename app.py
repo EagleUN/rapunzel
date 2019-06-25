@@ -84,13 +84,14 @@ def new_token(user_id,token):
 	found = client.notifications.user_tokens.find(query)
 	if found.count() > 0:
 		found = found[0]
-		print("There are tokens for this user :D")
-		found["tokens"].append(token)
+		if !(tokens in found["tokens"]):
+			found["tokens"].append(token)
+			if len(found["tokens"]) > 5:
+				found["tokens"] = found["tokens"][1:]
 		app.logger.info(found)
 		client.notifications.user_tokens.update_one(query, {"$set": found})
 		return dumps(found)
 	else:
-		print("There is no tokens for this user :C")
 		item_doc = {
 			'user_id': user_id,
 			'tokens' : [token]
