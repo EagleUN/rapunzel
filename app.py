@@ -6,14 +6,50 @@ import requests
 from flask import Flask, redirect, url_for, request, render_template,jsonify 
 from pymongo import MongoClient
 from bson.json_util import dumps
-from graphqlclient import GraphQLClient
+from firebase_admin import messaging
+from firebase_admin import credentials
+import firebase_admin
+
+
+# Initialize firebase
+cred = credentials.Certificate("firebase-adminsdk-secret-key.json")
+firebase_admin.initialize_app(cred)
+
 app= Flask(__name__)
 client= MongoClient(host=['rapunzel_db:27017'], connect = True)
 db= client.notifications 
 
+def buildNotification(title, body):
+    message = messaging.Message(
+        notification=messaging.Notification(
+            title=title,
+            body=body,
+        ),
+        android=messaging.AndroidConfig(
+            ttl=datetime.timedelta(seconds=3600),
+            priority='normal',
+            notification=messaging.AndroidNotification(
+                icon='stock_ticker_update',
+                color='#f45342'
+            ),
+        ),
+        apns=messaging.APNSConfig(
+            payload=messaging.APNSPayload(
+                aps=messaging.Aps(badge=42),
+            ),
+        ),
+				token="ffpngwxPxCU:APA91bGxEPx2pZ6JkF425QcSvI_5m53SLzi7njK3HI2yzgQ3szpmt2bCcLeFeHA11RU7rmIz5StzRYTrNf5vjZnViLt3P0GWEUU7uGCs2zuYGoqpwKn4wMIGpGCiXKZDm2K4clTNOpfm"
+    )
+    return message
+
+def sendNotification(title, body):
+	message = buildNotification(title, body)
+	response = messaging.send(message)
+	print('Sent notification and got response:', response)
+
 def makeQuery(id, query,params):
 	userQuery = {"query": "query{"+query+"(id:"+id+")" + params +" }"}
-	rest = (requests.post('http://35.232.95.82:5000/graphql',json= userQuery)).text
+	rest = (requests.post('http://35.232.95.82/graphql',json= userQuery)).text
 	serverResponse = json.loads(rest)
 	app.logger.info(rest)
 	data = serverResponse["data"][query]
@@ -52,6 +88,13 @@ def new_follow(user_id,follower_id):
 		'date' : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"),
 		'type' : "follow"}
 	db.notifications.insert_one(item_doc)
+
+	follower = makeQuery("{id:\""+follower_id+ "\"}", "userById","{id name last_name email}")
+	followerName = follower["name"] + " " + follower["last_name"]
+	notificationTitle = "You have a new follower"
+	notificationBody = followerName + " is now following you"
+	sendNotification(notificationTitle, notificationBody)
+
 	return dumps(item_doc)
 
 @app.route('/posts/<post_id>/shares/<follower_id>', methods=['POST'])
@@ -68,6 +111,13 @@ def new_share(post_id,follower_id):
 		'date' : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f"),
 		'type' : "share"}
 	db.notifications.insert_one(item_doc)
+
+	follower = makeQuery("{id:\""+follower_id+ "\"}", "userById","{id name last_name email}")
+	followerName = follower["name"] + " " + follower["last_name"]
+	notificationTitle = "Your post was shared"
+	notificationBody = followerName + " has shared your post"
+	sendNotification(notificationTitle, notificationBody)
+
 	return dumps(item_doc)
 
 @app.route('/notifications/<user_id>')
@@ -87,5 +137,6 @@ def get_notifications(user_id):
 	return dumps(items)
 
 if __name__ == "__main__":
+	print("Starting rapunzel")
 	app.run(host='0.0.0.0', port= '5050' , debug=True)
 
