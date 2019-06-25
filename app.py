@@ -13,7 +13,7 @@ db= client.notifications
 
 def makeQuery(id, query,params):
 	userQuery = {"query": "query{"+query+"(id:"+id+")" + params +" }"}
-	rest = (requests.post('http://35.232.95.82:5000/graphql',json= userQuery)).text
+	rest = (requests.post('http://35.232.95.82/graphql',json= userQuery)).text
 	serverResponse = json.loads(rest)
 	app.logger.info(rest)
 	data = serverResponse["data"][query]
