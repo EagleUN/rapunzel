@@ -13,7 +13,7 @@ db= client.notifications
 
 def makeQuery(id, query,params):
 	userQuery = {"query": "query{"+query+"(id:"+id+")" + params +" }"}
-	rest = (requests.post('http://35.232.95.82/graphql',json= userQuery)).text
+	rest = (requests.post('http://35.232.95.82:5000/graphql',json= userQuery)).text
 	serverResponse = json.loads(rest)
 	app.logger.info(rest)
 	data = serverResponse["data"][query]
@@ -40,6 +40,14 @@ def testquery():
 def allNotif():
 	_items = db.notifications.find()
 	items = [item for item in _items]
+	for i in items: 
+		follower_id = i["follower"]
+		follower = makeQuery("{id:\""+follower_id+ "\"}", "userById","{id name last_name email}")
+		i["follower_name"] = follower["name"] + " " + follower["last_name"]
+		if i["type"] == "share":
+			post_id = i["post_id"]
+			post = makeQuery("\""+post_id+"\"","postById","{id createdAt idCreator content}")
+			i["content"] = post["content"]
 	return dumps(items)
 
 @app.route('/users/<user_id>/followers/<follower_id>', methods=['POST'])
@@ -77,13 +85,11 @@ def get_notifications(user_id):
 	for i in items: 
 		follower_id = i["follower"]
 		follower = makeQuery("{id:\""+follower_id+ "\"}", "userById","{id name last_name email}")
-		if i["type"] == "follow":
-			i["follower_name"] = follower["name"] + " " + follower["last_name"]
-		else: 
+		i["follower_name"] = follower["name"] + " " + follower["last_name"]
+		if i["type"] == "share":
 			post_id = i["post_id"]
 			post = makeQuery("\""+post_id+"\"","postById","{id createdAt idCreator content}")
 			i["content"] = post["content"]
-			i["follower_name"] = follower["name"] + " " + follower["last_name"]
 	return dumps(items)
 
 if __name__ == "__main__":
