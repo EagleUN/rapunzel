@@ -10,7 +10,6 @@ from firebase_admin import messaging
 from firebase_admin import credentials
 import firebase_admin
 
-
 # Initialize firebase
 cred = credentials.Certificate("firebase-adminsdk-secret-key.json")
 firebase_admin.initialize_app(cred)
@@ -19,7 +18,7 @@ app= Flask(__name__)
 client= MongoClient(host=['rapunzel_db:27017'], connect = True)
 db= client.notifications 
 
-def buildNotification(title, body):
+def buildNotification(title, body, token):
     message = messaging.Message(
         notification=messaging.Notification(
             title=title,
@@ -38,13 +37,14 @@ def buildNotification(title, body):
                 aps=messaging.Aps(badge=42),
             ),
         ),
-				token="ffpngwxPxCU:APA91bGxEPx2pZ6JkF425QcSvI_5m53SLzi7njK3HI2yzgQ3szpmt2bCcLeFeHA11RU7rmIz5StzRYTrNf5vjZnViLt3P0GWEUU7uGCs2zuYGoqpwKn4wMIGpGCiXKZDm2K4clTNOpfm"
+				token=token
     )
     return message
 
-def sendNotification(title, body):
-	message = buildNotification(title, body)
-	response = messaging.send(message)
+def sendNotification(title, body, tokens):
+	for token in tokens:
+		message = buildNotification(title, body, token)
+		response = messaging.send(message)
 	print('Sent notification and got response:', response)
 
 def makeQuery(id, query,params):
@@ -78,6 +78,27 @@ def allNotif():
 	items = [item for item in _items]
 	return dumps(items)
 
+@app.route('/users/<user_id>/tokens/<token>', methods=['POST'])
+def new_token(user_id,token):
+	query = {'user_id': user_id}
+	found = client.notifications.user_tokens.find(query)
+	if found.count() > 0:
+		found = found[0]
+		print("There are tokens for this user :D")
+		found["tokens"].append(token)
+		app.logger.info(found)
+		client.notifications.user_tokens.update_one(query, {"$set": found})
+		return dumps(found)
+	else:
+		print("There is no tokens for this user :C")
+		item_doc = {
+			'user_id': user_id,
+			'tokens' : [token]
+		}
+		client.notifications.user_tokens.insert_one(item_doc)
+		app.logger.info(item_doc)
+		return dumps(item_doc)
+
 @app.route('/users/<user_id>/followers/<follower_id>', methods=['POST'])
 def new_follow(user_id,follower_id):
 	id = "{id:\""+ follower_id + "\"}"
@@ -89,11 +110,12 @@ def new_follow(user_id,follower_id):
 		'type' : "follow"}
 	db.notifications.insert_one(item_doc)
 
+	tokens = client.notifications.user_tokens.find({"user_id": user_id})
 	follower = makeQuery("{id:\""+follower_id+ "\"}", "userById","{id name last_name email}")
 	followerName = follower["name"] + " " + follower["last_name"]
 	notificationTitle = "You have a new follower"
 	notificationBody = followerName + " is now following you"
-	sendNotification(notificationTitle, notificationBody)
+	sendNotification(notificationTitle, notificationBody, tokens)
 
 	return dumps(item_doc)
 
@@ -112,11 +134,12 @@ def new_share(post_id,follower_id):
 		'type' : "share"}
 	db.notifications.insert_one(item_doc)
 
+	tokens = client.notifications.user_tokens.find({"user_id": notificated_user})
 	follower = makeQuery("{id:\""+follower_id+ "\"}", "userById","{id name last_name email}")
 	followerName = follower["name"] + " " + follower["last_name"]
 	notificationTitle = "Your post was shared"
 	notificationBody = followerName + " has shared your post"
-	sendNotification(notificationTitle, notificationBody)
+	sendNotification(notificationTitle, notificationBody, tokens)
 
 	return dumps(item_doc)
 
