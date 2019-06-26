@@ -76,6 +76,14 @@ def testquery():
 def allNotif():
 	_items = db.notifications.find()
 	items = [item for item in _items]
+	for i in items: 
+		follower_id = i["follower"]
+		follower = makeQuery("{id:\""+follower_id+ "\"}", "userById","{id name last_name email}")
+		i["follower_name"] = follower["name"] + " " + follower["last_name"]
+		if i["type"] == "share":
+			post_id = i["post_id"]
+			post = makeQuery("\""+post_id+"\"","postById","{id createdAt idCreator content}")
+			i["content"] = post["content"]
 	return dumps(items)
 
 @app.route('/users/<user_id>/tokens/<token>', methods=['POST'])
@@ -84,7 +92,7 @@ def new_token(user_id,token):
 	found = client.notifications.user_tokens.find(query)
 	if found.count() > 0:
 		found = found[0]
-		if !(tokens in found["tokens"]):
+		if (token in found["tokens"]) == False:
 			found["tokens"].append(token)
 			if len(found["tokens"]) > 5:
 				found["tokens"] = found["tokens"][1:]
@@ -151,13 +159,11 @@ def get_notifications(user_id):
 	for i in items: 
 		follower_id = i["follower"]
 		follower = makeQuery("{id:\""+follower_id+ "\"}", "userById","{id name last_name email}")
-		if i["type"] == "follow":
-			i["follower_name"] = follower["name"] + " " + follower["last_name"]
-		else: 
+		i["follower_name"] = follower["name"] + " " + follower["last_name"]
+		if i["type"] == "share":
 			post_id = i["post_id"]
 			post = makeQuery("\""+post_id+"\"","postById","{id createdAt idCreator content}")
 			i["content"] = post["content"]
-			i["follower_name"] = follower["name"] + " " + follower["last_name"]
 	return dumps(items)
 
 if __name__ == "__main__":
