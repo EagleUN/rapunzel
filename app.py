@@ -84,7 +84,7 @@ def new_token(user_id,token):
 	found = client.notifications.user_tokens.find(query)
 	if found.count() > 0:
 		found = found[0]
-		if !(tokens in found["tokens"]):
+		if !(token in found["tokens"]):
 			found["tokens"].append(token)
 			if len(found["tokens"]) > 5:
 				found["tokens"] = found["tokens"][1:]
