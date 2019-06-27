@@ -37,19 +37,23 @@ def buildNotification(title, body, token):
                 aps=messaging.Aps(badge=42),
             ),
         ),
-				token=token
+	token=token
     )
     return message
 
-def sendNotification(title, body, tokens):
-	response = None
-	for token in tokens:
-		message = buildNotification(title, body, token)
-		response = messaging.send(message)
-	if response is None:
-		print('Sent notification and got response:', response)
-	else: 
-		print('Not response generated')
+def sendNotification(title, body, cursor):
+	for doc in cursor:
+		app.logger.info("doc: " + str(doc))
+		tokens = doc["tokens"]
+		app.logger.info("Tokens: " + str(tokens))
+		for token in tokens:
+			app.logger.info("Token: " + str(token))
+			message = buildNotification(title, body, token)
+			try:
+				response = messaging.send(message)
+				print('Sent notification and got response:', response)
+			except:
+				pass
 
 def makeQuery(id, query,params):
 	userQuery = {"query": "query{"+query+"(id:"+id+")" + params +" }"}
@@ -93,22 +97,26 @@ def allNotif():
 @app.route('/users/<user_id>/tokens/<token>', methods=['POST'])
 def new_token(user_id,token):
 	query = {'user_id': user_id}
-	found = client.notifications.user_tokens.find(query)
-	if found.count() > 0:
+	_found = client.notifications.user_tokens.find(query)
+	found = [ item for item in _found ]
+	if len(found) > 0:
 		found = found[0]
 		if (token in found["tokens"]) == False:
 			found["tokens"].append(token)
 			if len(found["tokens"]) > 5:
 				found["tokens"] = found["tokens"][1:]
+		app.logger.info("New token added:")
 		app.logger.info(found)
 		client.notifications.user_tokens.update_one(query, {"$set": found})
 		return dumps(found)
 	else:
+		app.logger.info("Not a new token :C")
 		item_doc = {
 			'user_id': user_id,
 			'tokens' : [token]
 		}
 		client.notifications.user_tokens.insert_one(item_doc)
+		app.logger.info("New token:")
 		app.logger.info(item_doc)
 		return dumps(item_doc)
 
