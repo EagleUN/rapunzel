@@ -42,10 +42,14 @@ def buildNotification(title, body, token):
     return message
 
 def sendNotification(title, body, tokens):
+	response = None
 	for token in tokens:
 		message = buildNotification(title, body, token)
 		response = messaging.send(message)
-	print('Sent notification and got response:', response)
+	if response is None:
+		print('Sent notification and got response:', response)
+	else: 
+		print('Not response generated')
 
 def makeQuery(id, query,params):
 	userQuery = {"query": "query{"+query+"(id:"+id+")" + params +" }"}
