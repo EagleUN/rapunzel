@@ -42,7 +42,9 @@ def buildNotification(title, body, token):
     return message
 
 def sendNotification(title, body, tokens):
+	app.logger.info("There are " + len(tokens) + " tokens")
 	for token in tokens:
+		app.logger.info("Token: " + token)
 		message = buildNotification(title, body, token)
 		response = messaging.send(message)
 	print('Sent notification and got response:', response)
@@ -96,6 +98,7 @@ def new_token(user_id,token):
 			found["tokens"].append(token)
 			if len(found["tokens"]) > 5:
 				found["tokens"] = found["tokens"][1:]
+		app.logger.info("New token:")
 		app.logger.info(found)
 		client.notifications.user_tokens.update_one(query, {"$set": found})
 		return dumps(found)
@@ -105,6 +108,7 @@ def new_token(user_id,token):
 			'tokens' : [token]
 		}
 		client.notifications.user_tokens.insert_one(item_doc)
+		app.logger.info("New token:")
 		app.logger.info(item_doc)
 		return dumps(item_doc)
 
