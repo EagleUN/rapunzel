@@ -11,8 +11,8 @@ from firebase_admin import credentials
 import firebase_admin
 
 # Initialize firebase
-cred = credentials.Certificate("~/firebase-adminsdk-secret-key.json")
-firebase_admin.initialize_app(cred)
+# cred = credentials.Certificate("~/firebase-adminsdk-secret-key.json")
+firebase_admin.initialize_app()
 
 app= Flask(__name__)
 client= MongoClient(host=['rapunzel_db:27017'], connect = True)
