@@ -11,7 +11,7 @@ from firebase_admin import credentials
 import firebase_admin
 
 # Initialize firebase
-cred = credentials.Certificate("firebase-adminsdk-secret-key.json")
+cred = credentials.Certificate("~/firebase-adminsdk-secret-key.json")
 firebase_admin.initialize_app(cred)
 
 app= Flask(__name__)
