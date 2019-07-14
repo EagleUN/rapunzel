@@ -15,7 +15,7 @@ import firebase_admin
 firebase_admin.initialize_app()
 
 app= Flask(__name__)
-client= MongoClient(host=['rapunzel_db:27017'], connect = True)
+client= MongoClient(host=['rapunzel-db:27017'], connect = True)
 db= client.notifications 
 
 def buildNotification(title, body, token):
