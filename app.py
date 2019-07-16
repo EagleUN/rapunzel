@@ -9,6 +9,7 @@ from bson.json_util import dumps
 from firebase_admin import messaging
 from firebase_admin import credentials
 import firebase_admin
+import time
 
 # Initialize firebase
 # cred = credentials.Certificate("~/firebase-adminsdk-secret-key.json")
@@ -56,13 +57,18 @@ def sendNotification(title, body, cursor):
 				pass
 
 def makeQuery(id, query,params):
-	userQuery = {"query": "query{"+query+"(id:"+id+")" + params +" }"}
-	rest = (requests.post('http://walt:5000/graphql',json= userQuery)).text
-	app.logger.info(userQuery)
-	serverResponse = json.loads(rest)
-	app.logger.info(rest)
-	data = serverResponse["data"][query]
-	return data
+	for i in range(10):
+		userQuery = {"query": "query{"+query+"(id:"+id+")" + params +" }"}
+		rest = (requests.post('http://walt:5000/graphql',json= userQuery)).text
+		app.logger.info(userQuery)
+		serverResponse = json.loads(rest)
+		app.logger.info(rest)
+		try:
+			data = serverResponse["data"][query]
+			return data
+		except:
+			time.sleep(.500)
+	return None
 
 @app.route('/test')
 def testquery():
