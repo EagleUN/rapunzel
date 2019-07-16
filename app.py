@@ -37,7 +37,7 @@ def buildNotification(title, body, token):
                 aps=messaging.Aps(badge=42),
             ),
         ),
-	token=token
+				token=token
     )
     return message
 
@@ -58,6 +58,7 @@ def sendNotification(title, body, cursor):
 def makeQuery(id, query,params):
 	userQuery = {"query": "query{"+query+"(id:"+id+")" + params +" }"}
 	rest = (requests.post('http://walt:5000/graphql',json= userQuery)).text
+	app.logger.info(userQuery)
 	serverResponse = json.loads(rest)
 	app.logger.info(rest)
 	data = serverResponse["data"][query]
