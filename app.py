@@ -59,7 +59,7 @@ def sendNotification(title, body, cursor):
 def makeQuery(id, query,params):
 	for i in range(10):
 		userQuery = {"query": "query{"+query+"(id:"+id+")" + params +" }"}
-		rest = (requests.post('http://walt:5000/graphql',json= userQuery)).text
+		rest = (requests.post('http://eagleun-api:5000/graphql',json= userQuery)).text
 		app.logger.info(userQuery)
 		serverResponse = json.loads(rest)
 		app.logger.info(rest)
