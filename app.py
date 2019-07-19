@@ -11,8 +11,8 @@ from firebase_admin import credentials
 import firebase_admin
 import time
 
-#cred = credentials.Certificate("magic.json")
-firebase_admin.initialize_app()
+cred = credentials.Certificate("magic/magic.json")
+firebase_admin.initialize_app(cred)
 
 # Initialize firebase
 app= Flask(__name__)
