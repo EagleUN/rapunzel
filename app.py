@@ -52,9 +52,10 @@ def sendNotification(title, body, cursor):
 			message = buildNotification(title, body, token)
 			try:
 				response = messaging.send(message)
+				app.logger.info("Sent notification and got response")
 				print('Sent notification and got response:', response)
-			except:
-				pass
+			except Exception as e:
+				app.logger.info("Error is " + str(e))
 
 def makeQuery(id, query,params):
 	for i in range(10):
