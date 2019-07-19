@@ -19,9 +19,6 @@ app= Flask(__name__)
 client= MongoClient(host=['rapunzel-db:27017'], connect = True)
 db= client.notifications 
 
-app.logger.info("Magic string:")
-app.logger.info(magicString)
-
 def buildNotification(title, body, token):
     message = messaging.Message(
         notification=messaging.Notification(
