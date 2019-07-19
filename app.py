@@ -11,13 +11,21 @@ from firebase_admin import credentials
 import firebase_admin
 import time
 
-# Initialize firebase
-# cred = credentials.Certificate("~/firebase-adminsdk-secret-key.json")
-firebase_admin.initialize_app()
+magicString = os.environ['MAGIC']
+magicFile = open("magic.json","w+")
+magicFile.write(magicString)
+magicFile.close()
 
+cred = credentials.Certificate("magic.json")
+firebase_admin.initialize_app(cred)
+
+# Initialize firebase
 app= Flask(__name__)
 client= MongoClient(host=['rapunzel-db:27017'], connect = True)
 db= client.notifications 
+
+app.logger.info("Magic string:")
+app.logger.info(magicString)
 
 def buildNotification(title, body, token):
     message = messaging.Message(
@@ -38,7 +46,7 @@ def buildNotification(title, body, token):
                 aps=messaging.Aps(badge=42),
             ),
         ),
-				token=token
+        token=token
     )
     return message
 
@@ -186,6 +194,9 @@ def get_notifications(user_id):
 	return dumps(items)
 
 if __name__ == "__main__":
-	print("Starting rapunzel")
-	app.run(host='0.0.0.0', port= '5050' , debug=True)
+    print("Starting rapunzel")
+    token = 'dSzTARiUCuY:APA91bHAQtS0sJmu9Dg2POF0XRXEEWnUODASK2l0yDB-cLTFn8eBJKxAad8Hty3NlbDMEXZ3BLExSDmS-6v5JrpWuBmuTFySQi-nLV5NOlHwZR3RNW5ZrgpMbrTJsf6B4I3cQukQfqaJ'
+    msg = buildNotification('this is phoenixun','buahahahaha',token)
+    messaging.send(msg)
+    app.run(host='0.0.0.0', port= '5050' , debug=True)
 
