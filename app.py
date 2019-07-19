@@ -11,13 +11,8 @@ from firebase_admin import credentials
 import firebase_admin
 import time
 
-magicString = os.environ['MAGIC']
-magicFile = open("magic.json","w+")
-magicFile.write(magicString)
-magicFile.close()
-
-cred = credentials.Certificate("magic.json")
-firebase_admin.initialize_app(cred)
+#cred = credentials.Certificate("magic.json")
+firebase_admin.initialize_app()
 
 # Initialize firebase
 app= Flask(__name__)
@@ -195,8 +190,5 @@ def get_notifications(user_id):
 
 if __name__ == "__main__":
     print("Starting rapunzel")
-    token = 'dSzTARiUCuY:APA91bHAQtS0sJmu9Dg2POF0XRXEEWnUODASK2l0yDB-cLTFn8eBJKxAad8Hty3NlbDMEXZ3BLExSDmS-6v5JrpWuBmuTFySQi-nLV5NOlHwZR3RNW5ZrgpMbrTJsf6B4I3cQukQfqaJ'
-    msg = buildNotification('this is phoenixun','buahahahaha',token)
-    messaging.send(msg)
     app.run(host='0.0.0.0', port= '5050' , debug=True)
 
